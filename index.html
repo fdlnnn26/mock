@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>System Terminal</title>
+  <style>
+    body {
+      background: black;
+      color: #00ff00;
+      font-family: monospace;
+      padding: 20px;
+    }
+    .red { color: #ff4d4d; }
+    .green { color: #00ff00; }
+    .yellow { color: #ffff66; }
+    .blue { color: #66ccff; }
+    .cyan { color: #00ffff; }
+  </style>
+</head>
+<body>
+
+<div id="terminal"></div>
+
+<script>
+const output = [
+  "<span class='green'>[BOOT] Initializing system...</span>",
+  "<span class='green'>[OK] Sistem aktif</span><br>",
+
+  "<span class='blue'>[SCAN] Searching target...</span>",
+  "<span class='green'>[OK] Target ditemukan</span><br>",
+
+  "<span class='cyan'>=== TARGET DATA ===</span>",
+  "Nama        : Ikmal Maulana",
+  "Status      : ACTIVE<br>",
+
+  "<span class='blue'>[LOCATE] Mengakses GPS...</span>",
+  "<span class='green'>[OK] Lokasi terkunci</span>",
+
+  "Location    : Kp. Situwangi, Desa Sukaluyu, Kec. Cijati",
+  "Environment : Area sawah<br>",
+
+  "<span class='yellow'>[UPDATE] Activity change detected...</span>",
+  "<span class='yellow'>[ANALYSIS] Pergerakan berhenti...</span>",
+  "<span class='yellow'>[ANALYSIS] No movement detected</span><br>",
+
+  "<span class='cyan'>Status Update:</span>",
+  "<span class='red'>Kondisi : TARGET SEDANG ISTIRAHAT / TERTIDUR</span><br>",
+
+  "<span class='blue'>[ACCESS] Attempting camera takeover...</span>",
+  "<span class='yellow'>[BYPASS] Melewati izin perangkat...</span>",
+  "<span class='green'>[OK] Camera access granted</span><br>",
+
+  "<span class='blue'>[DATA] Memulai data breach...</span>",
+  "<span class='yellow'>[BREACH] Accessing internal storage...</span>",
+  "<span class='yellow'>[DECRYPT] Membuka file...</span>",
+  "<span class='green'>[OK] Data accessed</span><br>",
+
+  "<span class='cyan'>[DATA] Mengambil isi data...</span>",
+  "- Galeri ditemukan",
+  "- Riwayat chat ditemukan",
+  "- File pribadi ditemukan<br>",
+
+  "<span class='red'>>> TARGET FULLY COMPROMISED <<<</span>",
+  "<span class='red'>>> SEMUA DATA BERHASIL DIAKSES <<<</span>"
+];
+
+let i = 0;
+function printLine() {
+  if (i < output.length) {
+    document.getElementById("terminal").innerHTML += output[i] + "<br>";
+    i++;
+    setTimeout(printLine, 400);
+  }
+}
+
+printLine();
+</script>
+
+</body>
+</html>
