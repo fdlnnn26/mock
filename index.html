@@ -1,558 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Modern Overlay TikTok Live Studio</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@1,800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Membuat seluruh kanvas transparan penuh */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: transparent; /* 100% Transparan */
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end; /* Memaksa konten berada di area bawah */
+        }
 
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --accent:#1a73e8;
-  --accent2:#0d47a1;
-  --green:#1b8a4e;
-  --amber:#b45309;
-  --red:#b91c1c;
-  --bg-dark:#0f172a;
-  --bg-mid:#1e293b;
-  --bg-card:#1e2d45;
-  --text-light:#f1f5f9;
-  --text-muted:#94a3b8;
-  --border-light:rgba(255,255,255,0.1);
-}
-.wrap{background:var(--bg-dark);border-radius:14px;overflow:hidden;font-family:var(--font-sans,'system-ui')}
-.slide{display:none;min-height:500px;position:relative;animation:fadeIn .45s ease both}
-.slide.active{display:flex;flex-direction:column}
-@keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-@keyframes slideL{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:translateX(0)}}
-@keyframes slideR{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:translateX(0)}}
-@keyframes popUp{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
-@keyframes grow{from{width:0}to{width:var(--w)}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
-.al{animation:slideL .5s ease both}
-.ar{animation:slideR .5s ease both}
-.au{animation:fadeIn .5s ease both}
-.ap{animation:popUp .5s ease both}
-.d1{animation-delay:.08s}.d2{animation-delay:.16s}.d3{animation-delay:.24s}
-.d4{animation-delay:.32s}.d5{animation-delay:.4s}.d6{animation-delay:.48s}.d7{animation-delay:.56s}
+        /* Wadah teks di bagian bawah layar */
+        .text-container {
+            margin-bottom: 100px; /* Jarak dari batas bawah layar */
+            text-align: center;
+            position: relative;
+            width: 100%;
+            height: 100px; /* Ruang untuk transisi animasi */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-.slide-inner{padding:40px 44px;flex:1;display:flex;flex-direction:column;justify-content:center}
+        /* Styling teks modern */
+        .animated-text {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.5rem;
+            font-style: italic;
+            font-weight: 800;
+            color: #ffffff;
+            text-transform: uppercase;
+            position: absolute;
+            opacity: 0;
+            
+            /* Shadow berlapis: membuat efek outline hitam + glow agar tebaca di semua warna background */
+            text-shadow: 
+                2px 2px 0px rgba(0,0,0,0.9),
+                -2px -2px 0px rgba(0,0,0,0.9),
+                2px -2px 0px rgba(0,0,0,0.9),
+                -2px 2px 0px rgba(0,0,0,0.9),
+                0px 10px 20px rgba(0,0,0,0.6);
 
-.tag{display:inline-block;background:rgba(26,115,232,.18);color:#7ab8f5;font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;padding:4px 14px;border-radius:20px;border:1px solid rgba(26,115,232,.3);margin-bottom:14px}
-.stitle{font-size:26px;font-weight:700;color:var(--text-light);line-height:1.25;margin-bottom:6px}
-.ssub{font-size:13px;color:var(--text-muted);margin-bottom:24px;line-height:1.6}
-.divider{width:48px;height:3px;background:var(--accent);border-radius:2px;margin-bottom:24px}
+            /* Animasi dengan kurva kecepatan yang lebih halus (smooth) */
+            animation: modernReveal 20s infinite cubic-bezier(0.25, 1, 0.5, 1);
+        }
 
-.chip{display:inline-block;font-size:11px;padding:3px 12px;border-radius:20px;font-weight:600;border:1px solid}
-.chip-blue{background:rgba(26,115,232,.15);color:#7ab8f5;border-color:rgba(26,115,232,.3)}
-.chip-green{background:rgba(27,138,78,.15);color:#6ee7a0;border-color:rgba(27,138,78,.3)}
-.chip-amber{background:rgba(180,83,9,.15);color:#fbbf24;border-color:rgba(180,83,9,.3)}
-.chip-red{background:rgba(185,28,28,.15);color:#f87171;border-color:rgba(185,28,28,.3)}
-.chip-purple{background:rgba(109,40,217,.15);color:#c4b5fd;border-color:rgba(109,40,217,.3)}
+        /* Mengatur urutan kemunculan tiap baris teks (tiap teks aktif ~4 detik) */
+        .text-1 { animation-delay: 0s; }
+        .text-2 { animation-delay: 4s; }
+        .text-3 { animation-delay: 8s; }
+        .text-4 { animation-delay: 12s; }
+        .text-5 { animation-delay: 16s; }
 
-.card{background:var(--bg-card);border:1px solid var(--border-light);border-radius:12px;padding:18px}
-.card-sm{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px}
+        /* Keyframes Animasi: Masuk dari bawah (blur) -> Diam & membesar perlahan -> Hilang ke atas */
+        @keyframes modernReveal {
+            0% { 
+                opacity: 0; 
+                transform: translateY(30px) scale(0.9); 
+                filter: blur(8px);
+                letter-spacing: -2px;
+            }
+            3% { 
+                opacity: 1; 
+                transform: translateY(0px) scale(1); 
+                filter: blur(0px);
+                letter-spacing: 2px;
+            }
+            17% { 
+                opacity: 1; 
+                transform: translateY(0px) scale(1.03); /* Efek zoom in perlahan */
+                filter: blur(0px);
+                letter-spacing: 4px; /* Teks sedikit merenggang perlahan */
+            }
+            20% { 
+                opacity: 0; 
+                transform: translateY(-30px) scale(1.1); 
+                filter: blur(8px);
+                letter-spacing: 8px;
+            }
+            21%, 100% { 
+                opacity: 0; /* Tetap tersembunyi sambil menunggu giliran teks lain */
+            }
+        }
+    </style>
+</head>
+<body>
 
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px}
-
-.stat-val{font-size:28px;font-weight:700;color:var(--text-light);line-height:1}
-.stat-lbl{font-size:11px;color:var(--text-muted);margin-top:4px;letter-spacing:.5px}
-
-.row{display:flex;align-items:center;gap:10px}
-.avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
-.avatar-blue{background:rgba(26,115,232,.25);color:#7ab8f5;border:2px solid rgba(26,115,232,.4)}
-.avatar-green{background:rgba(27,138,78,.25);color:#6ee7a0;border:2px solid rgba(27,138,78,.4)}
-.avatar-purple{background:rgba(109,40,217,.25);color:#c4b5fd;border:2px solid rgba(109,40,217,.4)}
-
-.hl{font-size:14px;font-weight:600;color:var(--text-light)}
-.hs{font-size:12px;color:var(--text-muted);margin-top:2px;line-height:1.5}
-.body-txt{font-size:13px;color:var(--text-muted);line-height:1.7}
-
-.bar-track{background:rgba(255,255,255,.08);border-radius:4px;height:6px;overflow:hidden;margin-top:8px}
-.bar-fill{height:6px;border-radius:4px;background:var(--accent);animation:grow .9s .6s ease both}
-
-.step-row{display:flex;gap:0;align-items:stretch}
-.step-num{width:32px;display:flex;flex-direction:column;align-items:center;flex-shrink:0}
-.step-circle{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.step-line{flex:1;width:2px;background:rgba(255,255,255,.1);margin:4px auto 0}
-.step-body{flex:1;padding:0 0 20px 12px}
-
-.icon-box{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.ib-blue{background:rgba(26,115,232,.2)}
-.ib-green{background:rgba(27,138,78,.2)}
-.ib-amber{background:rgba(180,83,9,.2)}
-.ib-red{background:rgba(185,28,28,.2)}
-.ib-purple{background:rgba(109,40,217,.2)}
-
-.progress-outer{display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,.3);padding:12px 20px;border-top:1px solid var(--border-light)}
-.prog-dots{display:flex;gap:5px;align-items:center}
-.dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.2);cursor:pointer;transition:all .2s}
-.dot.on{background:var(--accent);transform:scale(1.4)}
-.nav-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:var(--text-light);padding:7px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;transition:background .2s}
-.nav-btn:hover{background:rgba(255,255,255,.15)}
-.nav-btn:disabled{opacity:.25;cursor:not-allowed}
-.ctr-txt{color:var(--text-muted);font-size:12px}
-
-.acc-bar{height:3px;background:linear-gradient(90deg,#1a73e8,#0ea5e9)}
-.slide-num-badge{position:absolute;top:18px;right:20px;background:rgba(26,115,232,.2);border:1px solid rgba(26,115,232,.3);color:#7ab8f5;font-size:11px;font-weight:600;padding:3px 12px;border-radius:20px}
-
-.notif{display:flex;align-items:center;gap:8px;background:rgba(27,138,78,.12);border:1px solid rgba(27,138,78,.25);border-radius:8px;padding:10px 14px;margin-top:10px}
-.notif-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0;animation:pulse 2s infinite}
-.notif p{font-size:12px;color:#86efac}
-
-.timeline{display:flex;flex-direction:column;gap:0}
-</style>
-
-<div class="wrap">
-<div class="acc-bar"></div>
-
-<div class="slide active" id="s1">
-  <div style="background:linear-gradient(135deg,#0d1b35 0%,#0f172a 50%,#0d1b35 100%);flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:44px;position:relative;min-height:500px">
-    <div class="slide-num-badge">01 / 12</div>
-    <div class="ap" style="font-size:11px;font-weight:700;letter-spacing:2px;color:#7ab8f5;text-transform:uppercase;margin-bottom:16px">Laporan PKL · 2025 / 2026</div>
-    <div class="ap d1" style="font-size:32px;font-weight:800;color:#f1f5f9;line-height:1.15;margin-bottom:6px;max-width:520px">Dinas Tanaman Pangan<br>& Hortikultura<br>Kabupaten Bogor</div>
-    <div class="ap d2" style="width:56px;height:3px;background:var(--accent);border-radius:2px;margin:16px auto"></div>
-    <div class="ap d3" style="font-size:13px;color:var(--text-muted);margin-bottom:28px">Praktik Kerja Lapangan · 6 Oktober 2025 – 7 Januari 2026</div>
-    <div class="ap d4" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-      <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:30px;padding:8px 20px;color:#e2e8f0;font-size:13px">Muhammad Fadlan</div>
-      <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:30px;padding:8px 20px;color:#e2e8f0;font-size:13px">Muhamad Rehan</div>
-      <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:30px;padding:8px 20px;color:#e2e8f0;font-size:13px">Faris Firmansyah</div>
+    <div class="text-container">
+        <div class="animated-text text-1">@mayora_gold_fx</div>
+        <div class="animated-text text-2">Not financial advice</div>
+        <div class="animated-text text-3">Join komunitas gratis</div>
+        <div class="animated-text text-4">KLIK LINK BIO</div>
+        <div class="animated-text text-5">VVIP GRUP GRATIS</div>
     </div>
-    <div class="ap d5" style="margin-top:24px;font-size:12px;color:rgba(255,255,255,.3)">SMK Tri Dharma 2 Bogor · XI Rekayasa Perangkat Lunak</div>
-  </div>
-</div>
 
-<div class="slide" id="s2">
-  <div class="slide-inner" style="background:var(--bg-dark)">
-    <div class="slide-num-badge">02 / 12</div>
-    <div class="tag al">Agenda</div>
-    <div class="stitle al d1">Daftar isi presentasi</div>
-    <div class="ssub al d2">Panduan materi yang akan disampaikan hari ini</div>
-    <div class="grid2" style="gap:10px">
-      <div class="card-sm au d1" style="display:flex;gap:12px;align-items:center"><div style="width:30px;height:30px;background:rgba(26,115,232,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#7ab8f5;font-size:13px;font-weight:700;flex-shrink:0">01</div><div><div class="hl" style="font-size:13px">Pendahuluan</div><div class="hs">Latar belakang, tujuan, manfaat</div></div></div>
-      <div class="card-sm au d2" style="display:flex;gap:12px;align-items:center"><div style="width:30px;height:30px;background:rgba(27,138,78,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#6ee7a0;font-size:13px;font-weight:700;flex-shrink:0">02</div><div><div class="hl" style="font-size:13px">Profil Instansi</div><div class="hs">Sejarah, visi misi, struktur</div></div></div>
-      <div class="card-sm au d3" style="display:flex;gap:12px;align-items:center"><div style="width:30px;height:30px;background:rgba(180,83,9,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fbbf24;font-size:13px;font-weight:700;flex-shrink:0">03</div><div><div class="hl" style="font-size:13px">Penempatan</div><div class="hs">Posisi & divisi masing-masing</div></div></div>
-      <div class="card-sm au d4" style="display:flex;gap:12px;align-items:center"><div style="width:30px;height:30px;background:rgba(109,40,217,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#c4b5fd;font-size:13px;font-weight:700;flex-shrink:0">04</div><div><div class="hl" style="font-size:13px">Kegiatan Harian</div><div class="hs">5 tugas utama selama PKL</div></div></div>
-      <div class="card-sm au d5" style="display:flex;gap:12px;align-items:center"><div style="width:30px;height:30px;background:rgba(185,28,28,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#f87171;font-size:13px;font-weight:700;flex-shrink:0">05</div><div><div class="hl" style="font-size:13px">Kendala & Solusi</div><div class="hs">Hambatan dan cara mengatasi</div></div></div>
-      <div class="card-sm au d6" style="display:flex;gap:12px;align-items:center"><div style="width:30px;height:30px;background:rgba(14,165,233,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#7dd3fc;font-size:13px;font-weight:700;flex-shrink:0">06</div><div><div class="hl" style="font-size:13px">Hasil & Kesimpulan</div><div class="hs">Capaian dan saran</div></div></div>
-    </div>
-  </div>
-</div>
-
-<div class="slide" id="s3">
-  <div class="slide-inner" style="background:var(--bg-dark)">
-    <div class="slide-num-badge">03 / 12</div>
-    <div class="tag al">Bab 1</div>
-    <div class="stitle al d1">Latar belakang PKL</div>
-    <div class="ssub al d2">Dasar pelaksanaan Praktik Kerja Lapangan tahun 2025/2026</div>
-    <div style="display:flex;flex-direction:column;gap:10px">
-      <div class="card au d1" style="display:flex;gap:14px;align-items:flex-start">
-        <div class="icon-box ib-blue"><span style="font-size:18px">📋</span></div>
-        <div><div class="hl">Dasar hukum</div><div class="body-txt">PKL dilaksanakan berdasarkan Permendikbud No. 3 Tahun 2020 tentang Standar Nasional Pendidikan Kejuruan yang mewajibkan pembelajaran di dunia kerja (Teaching Factory) sebagai bagian dari kurikulum SMK.</div></div>
-      </div>
-      <div class="card au d2" style="display:flex;gap:14px;align-items:flex-start">
-        <div class="icon-box ib-amber"><span style="font-size:18px">🎯</span></div>
-        <div><div class="hl">Latar belakang</div><div class="body-txt">Tingginya angka pengangguran terdidik (~9–10% pada 2025) mendorong pemerintah mewajibkan siswa SMK untuk terjun langsung ke industri. PKL menjembatani teori di sekolah dengan kebutuhan nyata dunia kerja agar lulusan lebih siap dan berdaya saing.</div></div>
-      </div>
-      <div class="card au d3" style="display:flex;gap:14px;align-items:flex-start">
-        <div class="icon-box ib-green"><span style="font-size:18px">🏛️</span></div>
-        <div><div class="hl">Pilihan instansi</div><div class="body-txt">Dinas Tanaman Pangan & Hortikultura Kab. Bogor dipilih karena relevan dengan penggunaan teknologi informasi dalam pengelolaan data pertanian, memberikan lingkungan kerja pemerintahan yang profesional dan terstruktur.</div></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="slide" id="s4">
-  <div class="slide-inner" style="background:var(--bg-dark)">
-    <div class="slide-num-badge">04 / 12</div>
-    <div class="tag al">Bab 1</div>
-    <div class="stitle al d1">Tujuan & manfaat kegiatan</div>
-    <div class="ssub al d2">Apa yang ingin dicapai dan didapat dari kegiatan PKL ini</div>
-    <div class="grid2" style="gap:14px">
-      <div>
-        <div class="chip chip-blue au" style="margin-bottom:12px">Tujuan PKL</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <div class="card-sm au d1" style="display:flex;gap:10px"><div style="color:#7ab8f5;font-size:16px;flex-shrink:0">→</div><div class="body-txt">Menerapkan ilmu RPL ke dalam pekerjaan nyata di instansi pemerintah</div></div>
-          <div class="card-sm au d2" style="display:flex;gap:10px"><div style="color:#7ab8f5;font-size:16px;flex-shrink:0">→</div><div class="body-txt">Melatih keterampilan teknis pengolahan data dan administrasi</div></div>
-          <div class="card-sm au d3" style="display:flex;gap:10px"><div style="color:#7ab8f5;font-size:16px;flex-shrink:0">→</div><div class="body-txt">Membentuk sikap profesional: disiplin, tanggung jawab, etika kerja</div></div>
-          <div class="card-sm au d4" style="display:flex;gap:10px"><div style="color:#7ab8f5;font-size:16px;flex-shrink:0">→</div><div class="body-txt">Menambah wawasan tentang dunia kerja dan peluang karier</div></div>
-        </div>
-      </div>
-      <div>
-        <div class="chip chip-green au" style="margin-bottom:12px">Manfaat PKL</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <div class="card-sm au d1" style="display:flex;gap:10px"><div style="color:#6ee7a0;font-size:16px;flex-shrink:0">✓</div><div class="body-txt">Memahami kelebihan & kekurangan diri untuk dikembangkan</div></div>
-          <div class="card-sm au d2" style="display:flex;gap:10px"><div style="color:#6ee7a0;font-size:16px;flex-shrink:0">✓</div><div class="body-txt">Terbiasa menghadapi situasi kerja nyata dan tekanan profesional</div></div>
-          <div class="card-sm au d3" style="display:flex;gap:10px"><div style="color:#6ee7a0;font-size:16px;flex-shrink:0">✓</div><div class="body-txt">Beradaptasi dengan lingkungan kerja beraturan dan bertanggung jawab</div></div>
-          <div class="card-sm au d4" style="display:flex;gap:10px"><div style="color:#6ee7a0;font-size:16px;flex-shrink:0">✓</div><div class="body-txt">Membangun jaringan profesional di lingkungan pemerintahan</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="slide" id="s5">
-  <div class="slide-inner" style="background:var(--bg-dark)">
-    <div class="slide-num-badge">05 / 12</div>
-    <div class="tag al">Bab 2</div>
-    <div class="stitle al d1">Profil instansi</div>
-    <div class="ssub al d2">Dinas Tanaman Pangan & Hortikultura Kabupaten Bogor</div>
-    <div style="display:flex;flex-direction:column;gap:10px">
-      <div class="card au d1">
-        <div class="hl" style="margin-bottom:6px">Tentang dinas</div>
-        <div class="body-txt">Unsur pelaksana Pemerintah Daerah Kab. Bogor di bidang pertanian tanaman pangan dan hortikultura. Bertanggung jawab langsung kepada Bupati Bogor melalui Sekretaris Daerah. Membawahi 3 bidang teknis: Sarana & Prasarana, Tanaman Pangan, dan Hortikultura.</div>
-      </div>
-      <div class="grid2 au d2" style="gap:10px">
-        <div class="card-sm">
-          <div style="color:#fbbf24;font-size:12px;font-weight:700;margin-bottom:6px">VISI</div>
-          <div class="body-txt">Terwujudnya Kabupaten Bogor yang termaju melalui pengelolaan sektor tanaman pangan & hortikultura yang produktif, berkelanjutan, dan berdaya saing tinggi.</div>
-        </div>
-        <div class="card-sm">
-          <div style="color:#6ee7a0;font-size:12px;font-weight:700;margin-bottom:6px">MISI UTAMA</div>
-          <div class="body-txt" style="display:flex;flex-direction:column;gap:4px">
-            <div>· Meningkatkan produksi & produktivitas tanaman</div>
-            <div>· Memperkuat sarana & prasarana pertanian</div>
-            <div>· Mendorong diversifikasi komoditas hortikultura</div>
-            <div>· Mewujudkan tata kelola pemerintahan yang baik</div>
-          </div>
-        </div>
-      </div>
-      <div class="grid4 au d3">
-        <div class="card-sm" style="text-align:center"><div class="stat-val" style="font-size:22px;color:#7ab8f5">3</div><div class="stat-lbl">Bidang teknis</div></div>
-        <div class="card-sm" style="text-align:center"><div class="stat-val" style="font-size:22px;color:#6ee7a0">3 bln</div><div class="stat-lbl">Durasi PKL</div></div>
-        <div class="card-sm" style="text-align:center"><div class="stat-val" style="font-size:22px;color:#fbbf24">Kab.</div><div class="stat-lbl">Bogor, Jabar</div></div>
-        <div class="card-sm" style="text-align:center"><div class="stat-val" style="font-size:22px;color:#c4b5fd">2025</div><div class="stat-lbl">Tahun PKL</div></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="slide" id="s6">
-  <div class="slide-inner" style="background:var(--bg-dark)">
-    <div class="slide-num-badge">06 / 12</div>
-    <div class="tag al">Bab 3</div>
-    <div class="stitle al d1">Posisi & divisi penempatan</div>
-    <div class="ssub al d2">Pembagian bidang kerja selama 3 bulan PKL</div>
-    <div class="grid3" style="gap:12px">
-      <div class="card au d1" style="text-align:center;border-top:3px solid #1a73e8">
-        <div class="avatar avatar-blue" style="margin:0 auto 12px">MF</div>
-        <div class="hl" style="margin-bottom:4px">Muhammad Fadlan</div>
-        <div style="font-size:11px;color:#7ab8f5;font-weight:600;letter-spacing:.5px;margin-bottom:10px">BIDANG SARANA & PRASARANA</div>
-        <div class="body-txt" style="text-align:left">Mengelola administrasi sarana produksi pertanian meliputi data alsintan, pupuk, benih, dan distribusi bantuan ke kelompok tani.</div>
-        <div style="margin-top:10px"><span class="chip chip-blue">Sarana Pertanian</span></div>
-      </div>
-      <div class="card au d2" style="text-align:center;border-top:3px solid #1b8a4e">
-        <div class="avatar avatar-green" style="margin:0 auto 12px">MR</div>
-        <div class="hl" style="margin-bottom:4px">Muhamad Rehan</div>
-        <div style="font-size:11px;color:#6ee7a0;font-weight:600;letter-spacing:.5px;margin-bottom:10px">BIDANG TANAMAN PANGAN</div>
-        <div class="body-txt" style="text-align:left">Pengelolaan data statistik pertanian meliputi luas tanam, luas panen, dan produksi komoditas padi, jagung, ubi kayu.</div>
-        <div style="margin-top:10px"><span class="chip chip-green">Tanaman Pangan</span></div>
-      </div>
-      <div class="card au d3" style="text-align:center;border-top:3px solid #7c3aed">
-        <div class="avatar avatar-purple" style="margin:0 auto 12px">FF</div>
-        <div class="hl" style="margin-bottom:4px">Faris Firmansyah</div>
-        <div style="font-size:11px;color:#c4b5fd;font-weight:600;letter-spacing:.5px;margin-bottom:10px">BIDANG HORTIKULTURA</div>
-        <div class="body-txt" style="text-align:left">Pengelolaan data komoditas hortikultura meliputi sayuran, buah-buahan, dan tanaman obat di wilayah Kabupaten Bogor.</div>
-        <div style="margin-top:10px"><span class="chip chip-purple">Hortikultura</span></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="slide" id="s7">
-  <div class="slide-inner" style="background:var(--bg-dark)">
-    <div class="slide-num-badge">07 / 12</div>
-    <div class="tag al">Bab 3</div>
-    <div class="stitle al d1">Rincian kegiatan harian</div>
-    <div class="ssub al d2">5 tugas utama yang dilaksanakan setiap hari kerja selama PKL</div>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      <div class="card au d1" style="display:flex;gap:14px;align-items:flex-start">
-        <div class="icon-box ib-blue" style="flex-shrink:0"><span style="font-size:18px">📊</span></div>
-        <div style="flex:1">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <div class="hl">Menginput data tanaman ke Excel</div>
-            <span class="chip chip-blue" style="font-size:10px">Semua peserta</span>
-          </div>
-          <div class="body-txt">Menerima data dari petugas lapangan (jenis tanaman, luas lahan, lokasi, kondisi), memasukkan ke tabel Excel yang disediakan bidang, lalu memverifikasi ulang sebelum diserahkan. Dilakukan rutin tiap hari kerja agar data selalu terbarui.</div>
-        </div>
-      </div>
-      <div class="card au d2" style="display:flex;gap:14px;align-items:flex-start">
-        <div class="icon-box ib-amber" style="flex-shrink:0"><span style="font-size:18px">📄</span></div>
-        <div style="flex:1">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <div class="hl">Duplikasi dokumen</div>
-            <span class="chip chip-blue" style="font-size:10px">Semua peserta</span>
-          </div>
-          <div class="body-txt">Menerima dokumen asli dari staff, menggandakan menggunakan mesin fotokopi, mengecek kualitas & kelengkapan hasil, mengembalikan dokumen asli untuk diarsipkan, dan menyerahkan hasil gandaan ke pihak yang membutuhkan.</div>
-        </div>
-      </div>
-      <div class="card au d3" style="display:flex;gap:14px;align-items:flex-start">
-        <div class="icon-box ib-green" style="flex-shrink:0"><span style="font-size:18px">💰</span></div>
-        <div style="flex:1">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <div class="hl">Meneruskan laporan keuangan ke bagian keuangan</div>
-            <span class="chip chip-blue" style="font-size:10px">Semua peserta</span>
-          </div>
-          <div class="body-txt">Menerima berkas laporan keuangan dari bidang, mencatat sebagai bukti serah terima, mengantarkan ke bagian keuangan dinas, dan meminta tanda tangan penerima sebagai konfirmasi dokumen diterima dengan baik.</div>
-        </div>
-      </div>
-      <div class="card au d4" style="display:flex;gap:14px;align-items:flex-start;border-left:3px solid rgba(180,83,9,.5)">
-        <div class="icon-box ib-amber" style="flex-shrink:0"><span style="font-size:18px">☕</span></div>
-        <div style="flex:1">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <div class="hl">Menyiapkan & mendistribusikan kopi</div>
-            <span class="chip chip-amber" style="font-size:10px">Rehan & Faris</span>
-          </div>
-          <div class="body-txt">Menyiapkan peralatan (cangkir, air panas, kopi, gula), menyeduh sesuai kebutuhan staff, mendistribusikan ke seluruh ruangan setiap pagi hari. <span style="color:#fbbf24;font-weight:600">Fadlan tidak terlibat dalam tugas ini.</span></div>
-        </div>
-      </div>
-      <div class="card au d5" style="display:flex;gap:14px;align-items:flex-start">
-        <div class="icon-box ib-purple" style="flex-shrink:0"><span style="font-size:18px">✉️</span></div>
-        <div style="flex:1">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <div class="hl">Mencatat surat masuk</div>
-            <span class="chip chip-blue" style="font-size:10px">Semua peserta</span>
-          </div>
-          <div class="body-txt">Menerima surat dari internal & eksternal dinas, mencatat ke buku agenda (no. urut, tanggal, asal surat, no. surat, perihal, disposisi awal), menyampaikan ke Kepala Bidang atau staff yang berkepentingan untuk ditindaklanjuti.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="slide" id="s8">
-  <div class="slide-inner" style="background:var(--bg-dark)">
-    <div class="slide-num-badge">08 / 12</div>
-    <div class="tag al">Bab 3</div>
-    <div class="stitle al d1">Kendala & solusi</div>
-    <div class="ssub al d2">Hambatan yang dihadapi dan langkah yang diambil untuk mengatasinya</div>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      <div class="grid2 au d1" style="gap:8px">
-        <div style="background:rgba(185,28,28,.08);border:1px solid rgba(185,28,28,.2);border-radius:10px;padding:12px 14px">
-          <div style="color:#f87171;font-size:11px;font-weight:700;letter-spacing:.5px;margin-bottom:6px">KENDALA · Input Data Excel</div>
-          <div class="body-txt">Data lapangan sering ditulis tangan dengan tulisan kurang jelas atau tidak lengkap sehingga menyulitkan penginputan akurat.</div>
-        </div>
-        <div style="background:rgba(27,138,78,.08);border:1px solid rgba(27,138,78,.2);border-radius:10px;padding:12px 14px">
-          <div style="color:#6ee7a0;font-size:11px;font-weight:700;letter-spacing:.5px;margin-bottom:6px">SOLUSI</div>
-          <div class="body-txt">Konfirmasi langsung ke petugas lapangan setiap kali data kurang jelas sebelum proses penginputan dilanjutkan.</div>
-        </div>
-      </div>
-      <div class="grid2 au d2" style="gap:8px">
-        <div style="background:rgba(185,28,28,.08);border:1px solid rgba(185,28,28,.2);border-radius:10px;padding:12px 14px">
-          <div style="color:#f87171;font-size:11px;font-weight:700;letter-spacing:.5px;margin-bottom:6px">KENDALA · Duplikasi Dokumen</div>
-          <div class="body-txt">Mesin fotokopi sering mengalami gangguan teknis (kertas macet, hasil buram) sehingga menghambat penggandaan dokumen.</div>
-        </div>
-        <div style="background:rgba(27,138,78,.08);border:1px solid rgba(27,138,78,.2);border-radius:10px;padding:12px 14px">
-          <div style="color:#6ee7a0;font-size:11px;font-weight:700;letter-spacing:.5px;margin-bottom:6px">SOLUSI</div>
-          <div class="body-txt">Segera lapor ke staff penanggung jawab peralatan kantor dan menunggu mesin diperbaiki sebelum melanjutkan duplikasi.</div>
-        </div>
-      </div>
-      <div class="grid2 au d3" style="gap:8px">
-        <div style="background:rgba(185,28,28,.08);border:1px solid rgba(185,28,28,.2);border-radius:10px;padding:12px 14px">
-          <div style="color:#f87171;font-size:11px;font-weight:700;letter-spacing:.5px;margin-bottom:6px">KENDALA · Laporan Keuangan</div>
-          <div class="body-txt">Berkas laporan sering belum lengkap atau belum ditandatangani pejabat berwenang sehingga tidak bisa langsung diteruskan.</div>
-        </div>
-        <div style="background:rgba(27,138,78,.08);border:1px solid rgba(27,138,78,.2);border-radius:10px;padding:12px 14px">
-          <div style="color:#6ee7a0;font-size:11px;font-weight:700;letter-spacing:.5px;margin-bottom:6px">SOLUSI</div>
-          <div class="body-txt">Cek kelengkapan berkas terlebih dahulu, informasikan kekurangan ke staff bidang agar segera dilengkapi sebelum diantar.</div>
-        </div>
-      </div>
-      <div class="grid2 au d4" style="gap:8px">
-        <div style="background:rgba(185,28,28,.08);border:1px solid rgba(185,28,28,.2);border-radius:10px;padding:12px 14px">
-          <div style="color:#f87171;font-size:11px;font-weight:700;letter-spacing:.5px;margin-bottom:6px">KENDALA · Surat Masuk & ATK</div>
-          <div class="body-txt">Stok ATK (pulpen, kertas) sering habis. Surat juga terkadang datang bersamaan dalam jumlah banyak memerlukan ketelitian ekstra.</div>
-        </div>
-        <div style="background:rgba(27,138,78,.08);border:1px solid rgba(27,138,78,.2);border-radius:10px;padding:12px 14px">
-          <div style="color:#6ee7a0;font-size:11px;font-weight:700;letter-spacing:.5px;margin-bottom:6px">SOLUSI</div>
-          <div class="body-txt">Cek ketersediaan ATK tiap pagi, segera laporkan kebutuhan ke staff terkait, catat surat satu per satu secara sistematis.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="slide" id="s9">
-  <div class="slide-inner" style="background:var(--bg-dark)">
-    <div class="slide-num-badge">09 / 12</div>
-    <div class="tag al">Bab 4</div>
-    <div class="stitle al d1">Hasil kegiatan PKL</div>
-    <div class="ssub al d2">Pengalaman & kompetensi yang berhasil diperoleh selama 3 bulan</div>
-    <div class="grid2" style="gap:12px">
-      <div class="card au d1">
-        <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
-          <div class="icon-box ib-blue"><span style="font-size:16px">📊</span></div>
-          <div class="hl">Pengolahan data Excel</div>
-        </div>
-        <div class="body-txt">Menginput, memvalidasi, dan menyusun data tanaman pertanian secara sistematis ke dalam spreadsheet harian.</div>
-        <div class="bar-track"><div class="bar-fill" style="--w:88%;width:0"></div></div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Kompetensi tercapai: 88%</div>
-      </div>
-      <div class="card au d2">
-        <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
-          <div class="icon-box ib-amber"><span style="font-size:16px">📄</span></div>
-          <div class="hl">Manajemen dokumen</div>
-        </div>
-        <div class="body-txt">Duplikasi, pengarsipan, dan penerusan dokumen resmi sesuai prosedur administrasi instansi pemerintahan.</div>
-        <div class="bar-track"><div class="bar-fill" style="--w:82%;width:0"></div></div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Kompetensi tercapai: 82%</div>
-      </div>
-      <div class="card au d3">
-        <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
-          <div class="icon-box ib-green"><span style="font-size:16px">✉️</span></div>
-          <div class="hl">Tata kelola surat</div>
-        </div>
-        <div class="body-txt">Mencatat dan mendistribusikan surat masuk sesuai alur administrasi yang berlaku di dinas pemerintah daerah.</div>
-        <div class="bar-track"><div class="bar-fill" style="--w:85%;width:0"></div></div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Kompetensi tercapai: 85%</div>
-      </div>
-      <div class="card au d4">
-        <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
-          <div class="icon-box ib-purple"><span style="font-size:16px">🤝</span></div>
-          <div class="hl">Etika kerja profesional</div>
-        </div>
-        <div class="body-txt">Memahami etos kerja, kedisiplinan, dan cara berinteraksi dalam lingkungan kerja instansi pemerintah daerah.</div>
-        <div class="bar-track"><div class="bar-fill" style="--w:92%;width:0"></div></div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Kompetensi tercapai: 92%</div>
-      </div>
-    </div>
-    <div class="notif au d5">
-      <div class="notif-dot"></div>
-      <p>Seluruh kegiatan PKL dilaksanakan selama 65 hari kerja aktif dari 6 Oktober 2025 s.d. 7 Januari 2026</p>
-    </div>
-  </div>
-</div>
-
-<div class="slide" id="s10">
-  <div class="slide-inner" style="background:var(--bg-dark)">
-    <div class="slide-num-badge">10 / 12</div>
-    <div class="tag al">Bab 4</div>
-    <div class="stitle al d1">Manfaat yang diperoleh</div>
-    <div class="ssub al d2">Dampak positif PKL terhadap perkembangan kompetensi peserta</div>
-    <div style="display:flex;flex-direction:column;gap:0">
-      <div class="step-row au d1">
-        <div class="step-num"><div class="step-circle">1</div><div class="step-line"></div></div>
-        <div class="step-body"><div class="hl">Keterampilan teknis meningkat</div><div class="body-txt">Kemampuan mengoperasikan Microsoft Excel untuk pengolahan data pertanian meningkat signifikan. Terbiasa bekerja dengan spreadsheet berisi ratusan baris data secara akurat dan efisien.</div></div>
-      </div>
-      <div class="step-row au d2">
-        <div class="step-num"><div class="step-circle">2</div><div class="step-line"></div></div>
-        <div class="step-body"><div class="hl">Wawasan dunia pemerintahan</div><div class="body-txt">Memahami alur birokrasi, sistem administrasi, dan prosedur kerja di lingkungan instansi pemerintah daerah yang berbeda dengan sektor swasta.</div></div>
-      </div>
-      <div class="step-row au d3">
-        <div class="step-num"><div class="step-circle">3</div><div class="step-line"></div></div>
-        <div class="step-body"><div class="hl">Kedisiplinan & tanggung jawab</div><div class="body-txt">Terbiasa datang tepat waktu, menyelesaikan tugas sesuai tenggat, dan bertanggung jawab terhadap setiap dokumen dan data yang dikelola.</div></div>
-      </div>
-      <div class="step-row au d4">
-        <div class="step-num"><div class="step-circle">4</div><div class="step-line"></div></div>
-        <div class="step-body"><div class="hl">Kemampuan komunikasi & adaptasi</div><div class="body-txt">Belajar berkomunikasi secara profesional dengan staff, pejabat, dan rekan kerja. Mampu beradaptasi dengan cepat di lingkungan kerja baru yang formal.</div></div>
-      </div>
-      <div class="step-row au d5">
-        <div class="step-num"><div class="step-circle">5</div></div>
-        <div class="step-body"><div class="hl">Bekal karier masa depan</div><div class="body-txt">Pengalaman nyata di instansi pemerintah menjadi nilai tambah saat melamar kerja atau melanjutkan pendidikan, khususnya di bidang administrasi & teknologi informasi.</div></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="slide" id="s11">
-  <div class="slide-inner" style="background:var(--bg-dark)">
-    <div class="slide-num-badge">11 / 12</div>
-    <div class="tag al">Bab 5</div>
-    <div class="stitle al d1">Kesimpulan & saran</div>
-    <div class="ssub al d2">Penutup dan rekomendasi dari pelaksanaan PKL</div>
-    <div class="grid2" style="gap:12px">
-      <div>
-        <div class="chip chip-blue au" style="margin-bottom:10px">Kesimpulan</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <div class="card-sm au d1"><div class="body-txt">PKL di Dinas Tanaman Pangan & Hortikultura Kab. Bogor memberikan pengalaman nyata dalam administrasi pemerintahan dan pengelolaan data pertanian selama 3 bulan.</div></div>
-          <div class="card-sm au d2"><div class="body-txt">Ketelitian, kedisiplinan, dan tanggung jawab terbukti menjadi kunci agar setiap pekerjaan dapat diselesaikan dengan baik dan tepat waktu di lingkungan kerja nyata.</div></div>
-          <div class="card-sm au d3"><div class="body-txt">PKL ini berhasil meningkatkan kesiapan peserta untuk terjun ke dunia kerja profesional setelah lulus dari SMK Tri Dharma 2 Bogor.</div></div>
-        </div>
-      </div>
-      <div>
-        <div class="chip chip-amber au" style="margin-bottom:10px">Saran</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <div class="card-sm au d1">
-            <div style="color:#7ab8f5;font-size:11px;font-weight:700;margin-bottom:4px">UNTUK INSTANSI</div>
-            <div class="body-txt">Tingkatkan digitalisasi dokumen agar proses pencarian dan pengarsipan lebih cepat. Berikan akses sistem informasi dinas yang lebih luas bagi peserta PKL.</div>
-          </div>
-          <div class="card-sm au d2">
-            <div style="color:#6ee7a0;font-size:11px;font-weight:700;margin-bottom:4px">UNTUK SEKOLAH</div>
-            <div class="body-txt">Pembekalan pra-PKL harus lebih terstruktur agar siswa memiliki gambaran jelas tentang lingkungan kerja pemerintahan sebelum terjun langsung.</div>
-          </div>
-          <div class="card-sm au d3">
-            <div style="color:#fbbf24;font-size:11px;font-weight:700;margin-bottom:4px">UNTUK PESERTA SELANJUTNYA</div>
-            <div class="body-txt">Aktif bertanya, jaga attitude, inisiatif tinggi, dan manfaatkan setiap kesempatan PKL semaksimal mungkin demi pengalaman terbaik.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="slide" id="s12">
-  <div style="background:linear-gradient(135deg,#0d1b35 0%,#0f172a 50%,#0d1b35 100%);flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:44px;min-height:500px">
-    <div class="slide-num-badge">12 / 12</div>
-    <div class="ap" style="font-size:48px;font-weight:800;color:#f1f5f9;margin-bottom:8px">Terima Kasih</div>
-    <div class="ap d1" style="width:56px;height:3px;background:var(--accent);border-radius:2px;margin:0 auto 20px"></div>
-    <div class="ap d2" style="font-size:14px;color:var(--text-muted);margin-bottom:28px;line-height:1.8">
-      Dinas Tanaman Pangan & Hortikultura Kabupaten Bogor<br>
-      6 Oktober 2025 – 7 Januari 2026
-    </div>
-    <div class="ap d3" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:28px">
-      <div style="background:rgba(26,115,232,.15);border:1px solid rgba(26,115,232,.3);border-radius:30px;padding:10px 22px">
-        <div style="color:#7ab8f5;font-size:11px;font-weight:700;letter-spacing:.5px">BIDANG SARANA</div>
-        <div style="color:#e2e8f0;font-size:13px;font-weight:600;margin-top:2px">Muhammad Fadlan</div>
-      </div>
-      <div style="background:rgba(27,138,78,.15);border:1px solid rgba(27,138,78,.3);border-radius:30px;padding:10px 22px">
-        <div style="color:#6ee7a0;font-size:11px;font-weight:700;letter-spacing:.5px">BIDANG PANGAN</div>
-        <div style="color:#e2e8f0;font-size:13px;font-weight:600;margin-top:2px">Muhamad Rehan</div>
-      </div>
-      <div style="background:rgba(109,40,217,.15);border:1px solid rgba(109,40,217,.3);border-radius:30px;padding:10px 22px">
-        <div style="color:#c4b5fd;font-size:11px;font-weight:700;letter-spacing:.5px">BIDANG HORTI</div>
-        <div style="color:#e2e8f0;font-size:13px;font-weight:600;margin-top:2px">Faris Firmansyah</div>
-      </div>
-    </div>
-    <div class="ap d4" style="font-size:12px;color:rgba(255,255,255,.25)">SMK Tri Dharma 2 Bogor · XI Rekayasa Perangkat Lunak · 2026</div>
-  </div>
-</div>
-
-<div class="progress-outer">
-  <button class="nav-btn" id="pb" onclick="go(-1)" disabled>← Sebelumnya</button>
-  <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
-    <div class="prog-dots" id="dots"></div>
-    <div class="ctr-txt" id="ctr">Slide 1 dari 12</div>
-  </div>
-  <button class="nav-btn" id="nb" onclick="go(1)">Berikutnya →</button>
-</div>
-</div>
-
-<script>
-let cur=1,tot=12;
-const dots=document.getElementById('dots');
-for(let i=1;i<=tot;i++){
-  const d=document.createElement('div');
-  d.className='dot'+(i===1?' on':'');
-  d.onclick=()=>jump(i);
-  dots.appendChild(d);
-}
-function jump(n){
-  document.getElementById('s'+cur).classList.remove('active');
-  cur=n;
-  const sl=document.getElementById('s'+cur);
-  sl.classList.add('active');
-  sl.style.animation='none';
-  sl.offsetHeight;
-  sl.style.animation='';
-  document.getElementById('ctr').textContent='Slide '+cur+' dari '+tot;
-  document.getElementById('pb').disabled=cur===1;
-  document.getElementById('nb').disabled=cur===tot;
-  document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('on',i+1===cur));
-  setTimeout(()=>{
-    sl.querySelectorAll('.bar-fill').forEach(b=>{
-      const w=b.style.getPropertyValue('--w');
-      if(w){b.style.width='0';setTimeout(()=>{b.style.width=w},50);}
-    });
-  },100);
-}
-function go(d){const n=cur+d;if(n>=1&&n<=tot)jump(n);}
-document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowRight'||e.key==='ArrowDown')go(1);
-  if(e.key==='ArrowLeft'||e.key==='ArrowUp')go(-1);
-});
-</script>
+</body>
+</html>
